@@ -15,14 +15,10 @@ public class GifServiceImpl implements GifService {
     private GifDao gifDao;
 
     @Override
-    public List<Gif> findAll() {
-        return gifDao.findAll();
-    }
+    public List<Gif> findAll() { return gifDao.findAll(); }
 
     @Override
-    public Gif findById(Long id) {
-        return gifDao.findById(id);
-    }
+    public Gif findById(Long id) { return gifDao.findById(id); }
 
     @Override
     public void save(Gif gif, MultipartFile file) {
@@ -30,16 +26,13 @@ public class GifServiceImpl implements GifService {
             gif.setBytes(file.getBytes());
             gifDao.save(gif);
         } catch (IOException e) {
-            System.err.println("Unable to get byte array from uploaded file.");
+            System.err.println("Unable to get byte array from uploaded File.");
         }
     }
 
     @Override
-    public void delete(Gif gif) {
-        gifDao.delete(gif);
-    }
+    public void delete(Gif gif) { gifDao.delete(gif); }
 
-    @Override
     public void toggleFavorite(Gif gif) {
         gif.setFavorite(!gif.isFavorite());
         gifDao.save(gif);

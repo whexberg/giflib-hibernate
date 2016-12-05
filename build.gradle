@@ -12,7 +12,7 @@ buildscript {
 }
 
 // Apply the Spring Boot plugin
-apply plugin: 'spring-boot'
+apply plugin: 'org.springframework.boot'
 
 // Apply the Java plugin (expects src/main/java to be source folder)
 apply plugin: 'java'
@@ -26,8 +26,8 @@ repositories {
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-thymeleaf'
     compile 'org.hashids:hashids:1.0.1'
-    compile 'org.springframework:spring-orm:4.2.5.RELEASE'
-    compile 'org.hibernate:hibernate-core:5.2.1.Final'
-    compile 'org.apache.tomcat:tomcat-dbcp:8.0.32'
-    compile 'com.h2database:h2:1.4.191'
+    compile 'org.springframework:spring-orm'
+    compile 'org.hibernate:hibernate-core:5.2.5.Final'
+    compile 'org.apache.tomcat:tomcat-dbcp:9.0.0.M13'
+    compile 'com.h2database:h2:1.4.193'
 }

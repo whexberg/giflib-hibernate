@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="layout :: head('upload')"></head>
 <body>
 <div th:replace="layout :: nav"></div>
@@ -12,7 +12,7 @@
         </div>
     </div>
     <div class="divider"></div>
-    <form th:action="@{${action}}" method="post" th:object="${gif}" enctype="multipart/form-data">
+    <form th:action="@{${action}}" method="post" enctype="multipart/form-data" th:object="${gif}">
         <input type="hidden" th:field="*{id}"/>
         <div class="row">
             <div class="col s12 l8">
@@ -30,15 +30,15 @@
         </div>
         <div class="row">
             <div class="col s12 l8">
-                <select th:field="*{category.id}" class="cs-select cs-skin-border">
+                <select th:field="*{category.id}" th:value="${gif.id}" class="cs-select cs-skin-border">
                     <option value="" disabled="disabled">Select a category</option>
-                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:style="|color:${cat.colorCode}|">Technology</option>
+                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:style="|color: ${cat.colorCode}|">Technology</option>
                 </select>
             </div>
         </div>
         <div class="row">
             <div class="col s12">
-                <button th:text="${submit}" type="submit" class="button">Upload</button>
+                <button  th:text="${submit}" type="submit" class="button">Upload</button>
                 <a href="javascript:window.location = document.referrer;" class="button">Cancel</a>
             </div>
         </div>

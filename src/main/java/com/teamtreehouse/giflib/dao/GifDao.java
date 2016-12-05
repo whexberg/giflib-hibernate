@@ -1,6 +1,7 @@
 package com.teamtreehouse.giflib.dao;
 
 import com.teamtreehouse.giflib.model.Gif;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

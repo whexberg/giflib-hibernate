@@ -5,6 +5,7 @@ public class FlashMessage {
     private Status status;
 
     public FlashMessage(String message, Status status) {
+
         this.message = message;
         this.status = status;
     }
@@ -18,6 +19,7 @@ public class FlashMessage {
     }
 
     public static enum Status {
-        SUCCESS, FAILURE
+        SUCCESS,
+        FAILURE
     }
 }

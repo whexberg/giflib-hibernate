@@ -1,5 +1,6 @@
 package com.teamtreehouse.giflib.config;
 
+
 import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,15 +16,23 @@ import javax.sql.DataSource;
 @Configuration
 @PropertySource("app.properties")
 public class DataConfig {
+    // Spring will load all the properties from
+    // app.properties in env so we can use elsewhere
     @Autowired
     private Environment env;
 
     @Bean
-    public LocalSessionFactoryBean sessionFactory() {
+    public LocalSessionFactoryBean sessionFactory(){
         Resource config = new ClassPathResource("hibernate.cfg.xml");
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+
+        // set location for config file
         sessionFactory.setConfigLocation(config);
+
+        // Set location to scan for entities
         sessionFactory.setPackagesToScan(env.getProperty("giflib.entity.package"));
+
+        // Set the source of the data(the database)
         sessionFactory.setDataSource(dataSource());
         return sessionFactory;
     }
@@ -44,4 +53,6 @@ public class DataConfig {
 
         return ds;
     }
+
+
 }

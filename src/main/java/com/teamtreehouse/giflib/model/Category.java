@@ -1,5 +1,6 @@
 package com.teamtreehouse.giflib.model;
 
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -14,11 +15,11 @@ public class Category {
     private Long id;
 
     @NotNull
-    @Size(min = 3, max = 12)
+    @Size(min = 3, max = 12, message = "The category name must be {min} to {max} characters in length.")
     private String name;
 
-    @NotNull
-    @Pattern(regexp = "#[0-9a-fA-F]{6}")
+    @NotNull(message = "Please select a color.")
+    @Pattern(regexp = "#[0-9a-fA-F]{6}", message = "Please select a color.")
     private String colorCode;
 
     @OneToMany(mappedBy = "category")

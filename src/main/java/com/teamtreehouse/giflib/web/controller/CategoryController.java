@@ -1,9 +1,14 @@
 package com.teamtreehouse.giflib.web.controller;
 
 import com.teamtreehouse.giflib.model.Category;
+import com.teamtreehouse.giflib.model.Gif;
 import com.teamtreehouse.giflib.service.CategoryService;
+import com.teamtreehouse.giflib.service.GifService;
 import com.teamtreehouse.giflib.web.Color;
 import com.teamtreehouse.giflib.web.FlashMessage;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.omg.PortableInterceptor.SUCCESSFUL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -21,8 +29,10 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private GifService gifService;
+
     // Index of all categories
-    @SuppressWarnings("unchecked")
     @RequestMapping("/categories")
     public String listCategories(Model model) {
         // TODO: Get all categories
@@ -36,9 +46,12 @@ public class CategoryController {
     @RequestMapping("/categories/{categoryId}")
     public String category(@PathVariable Long categoryId, Model model) {
         // TODO: Get the category given by categoryId
-        Category category = null;
+        Category category = categoryService.findById(categoryId);
+        List<Gif> gifs = category.getGifs();
 
         model.addAttribute("category", category);
+        model.addAttribute("gifs", gifs);
+
         return "category/details";
     }
 
@@ -47,12 +60,12 @@ public class CategoryController {
     public String formNewCategory(Model model) {
         // TODO: Add model attributes needed for new form
         if(!model.containsAttribute("category")) {
-            model.addAttribute("category",new Category());
+            model.addAttribute("category", new Category());
         }
         model.addAttribute("colors", Color.values());
-        model.addAttribute("action","/categories");
-        model.addAttribute("heading","New Category");
-        model.addAttribute("submit","Add");
+        model.addAttribute("action", "/categories");
+        model.addAttribute("heading", "New Category");
+        model.addAttribute("submit", "Add");
 
         return "category/form";
     }
@@ -60,14 +73,15 @@ public class CategoryController {
     // Form for editing an existing category
     @RequestMapping("categories/{categoryId}/edit")
     public String formEditCategory(@PathVariable Long categoryId, Model model) {
-        // TODO: Add model attributes needed for new form
+        // TODO: Add model attributes needed for edit form
+        Category category = categoryService.findById(categoryId);
         if(!model.containsAttribute("category")) {
-            model.addAttribute("category",categoryService.findById(categoryId));
+            model.addAttribute("category", category);
         }
         model.addAttribute("colors", Color.values());
-        model.addAttribute("action",String.format("/categories/%s",categoryId));
-        model.addAttribute("heading","Edit Category");
-        model.addAttribute("submit","Update");
+        model.addAttribute("action", String.format("/categories/%s",categoryId));
+        model.addAttribute("heading", "Edit Category");
+        model.addAttribute("submit", "Update");
 
         return "category/form";
     }
@@ -76,20 +90,21 @@ public class CategoryController {
     @RequestMapping(value = "/categories/{categoryId}", method = RequestMethod.POST)
     public String updateCategory(@Valid Category category, BindingResult result, RedirectAttributes redirectAttributes) {
         // TODO: Update category if valid data was received
-        if(result.hasErrors()) {
-            // Include validation errors upon redirect
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.category",result);
+        if(result.hasErrors()){
+            // Include validation error upon redirect
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
 
-            // Add  category if invalid was received
-            redirectAttributes.addFlashAttribute("category",category);
+            // Add category if invalid data was received
+            // ONLY SURVIVES ONE REDIRECT
+            redirectAttributes.addFlashAttribute(category);
 
             // Redirect back to the form
-            return String.format("redirect:/categories/%s/edit",category.getId());
+            return String.format("redirect:/categories/%s", category.getId());
         }
 
         categoryService.save(category);
 
-        redirectAttributes.addFlashAttribute("flash",new FlashMessage("Category successfully updated!", FlashMessage.Status.SUCCESS));
+        redirectAttributes.addFlashAttribute("flash", new FlashMessage("Category successfully updated!", FlashMessage.Status.SUCCESS));
 
         // TODO: Redirect browser to /categories
         return "redirect:/categories";
@@ -99,12 +114,13 @@ public class CategoryController {
     @RequestMapping(value = "/categories", method = RequestMethod.POST)
     public String addCategory(@Valid Category category, BindingResult result, RedirectAttributes redirectAttributes) {
         // TODO: Add category if valid data was received
-        if(result.hasErrors()) {
-            // Include validation errors upon redirect
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.category",result);
+        if(result.hasErrors()){
+            // Include validation error upon redirect
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.category", result);
 
-            // Add  category if invalid was received
-            redirectAttributes.addFlashAttribute("category",category);
+            // Add category if invalid data was received
+            // ONLY SURVIVES ONE REDIRECT
+            redirectAttributes.addFlashAttribute(category);
 
             // Redirect back to the form
             return "redirect:/categories/add";
@@ -112,7 +128,7 @@ public class CategoryController {
 
         categoryService.save(category);
 
-        redirectAttributes.addFlashAttribute("flash",new FlashMessage("Category successfully added!", FlashMessage.Status.SUCCESS));
+        redirectAttributes.addFlashAttribute("flash", new FlashMessage("Category successfully added!", FlashMessage.Status.SUCCESS));
 
         // TODO: Redirect browser to /categories
         return "redirect:/categories";
@@ -122,14 +138,14 @@ public class CategoryController {
     @RequestMapping(value = "/categories/{categoryId}/delete", method = RequestMethod.POST)
     public String deleteCategory(@PathVariable Long categoryId, RedirectAttributes redirectAttributes) {
         Category cat = categoryService.findById(categoryId);
-
         // TODO: Delete category if it contains no GIFs
         if(cat.getGifs().size() > 0) {
-            redirectAttributes.addFlashAttribute("flash",new FlashMessage("Only empty categories can be deleted.", FlashMessage.Status.FAILURE));
-            return String.format("redirect:/categories/%s/edit",categoryId);
+            redirectAttributes.addFlashAttribute("flash", new FlashMessage("Only empty categories can be deleted", FlashMessage.Status.FAILURE));
+            return String.format("redirect:/categories/%s/edit", categoryId);
         }
+
         categoryService.delete(cat);
-        redirectAttributes.addFlashAttribute("flash",new FlashMessage("Category deleted!", FlashMessage.Status.SUCCESS));
+        redirectAttributes.addFlashAttribute("flash", new FlashMessage("Category deleted!", FlashMessage.Status.SUCCESS));
 
         // TODO: Redirect browser to /categories
         return "redirect:/categories";
